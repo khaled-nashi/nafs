@@ -101,6 +101,11 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:10px}
 
 <!-- ===== الإعداد ===== -->
 <section class="tab on" id="tab-setup">
+  <div class="card" style="border-color:#99f6e4;background:#f0fdfa">
+    <h2>اختبارات جاهزة</h2>
+    <p class="note">يضبط الأسئلة والنواتج ومفتاح الإجابة تلقائيًا (ويبقي أسماء الطلاب).</p>
+    <div class="row"><select id="tplSel" style="flex:1;min-width:220px"></select><button class="btn" id="tplLoad">تحميل</button></div>
+  </div>
   <div class="card">
     <h2>بيانات الاختبار</h2>
     <div class="grid">
@@ -122,6 +127,7 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:10px}
       <div style="width:230px"><label>طريقة إدخال الإجابات</label>
         <select id="mode"><option value="tf">صح / خطأ (✓ ✗)</option><option value="letters">حرف الإجابة (أ ب ج د) مع مفتاح</option></select></div>
     </div>
+    <label style="display:flex;gap:6px;align-items:center;color:var(--ink);margin-top:8px"><input type="checkbox" id="twoF" style="width:auto"> الاختبار له نموذجان (أ) و(ب) بمفتاحين مختلفين</label>
     <p class="note">«صح/خطأ»: تضغط على الخانة فتتبدل ✓ ← ✗. «حرف الإجابة»: تكتب اختيار الطالب ويُصحَّح تلقائيًا بالمفتاح، ويظهر لك تحليل المشتتات.</p>
     <h3>توزيع سريع للمجالات</h3>
     <div class="row">
@@ -258,7 +264,8 @@ function normVal(v){
   return m[l]||'';
 }
 const isLetter=v=>LETTERS.includes(v);
-function corr(v,q){if(v==='1')return 1;if(v==='0')return 0;if(isLetter(v)&&q.key)return v===q.key?1:0;return 0}
+const keyOf=(q,f)=>f==='ب'?(q.keyB||''):(q.key||'');
+function corr(v,q,f){if(v==='1')return 1;if(v==='0')return 0;const k=keyOf(q,f);if(isLetter(v)&&k)return v===k?1:0;return 0}
 
 /* ---------- التبويبات ---------- */
 function go(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
@@ -274,7 +281,7 @@ function fixDomains(){S.questions.forEach((q,i)=>{if(!S.domains.includes(q.d))q.
 function renderSetup(){
   document.querySelectorAll('[data-meta]').forEach(el=>{if(el.dataset.meta!=='subject')el.value=S.meta[el.dataset.meta]??''});
   subjOptions();
-  $('#nq').value=ar(S.questions.length);$('#mode').value=S.mode;
+  $('#nq').value=ar(S.questions.length);$('#mode').value=S.mode;$('#twoF').checked=!!S.twoForms;
   $('#domains').value=S.domains.join('\n');
   $('#lvA').value=ar(S.levels.adv);$('#lvP').value=ar(S.levels.prof);$('#lvM').value=ar(S.levels.min);
   $('#bDom').innerHTML=S.domains.map(d=>`<option>${esc(d)}</option>`).join('');
@@ -282,12 +289,12 @@ function renderSetup(){
 }
 function renderQ(){
   const L=S.mode==='letters';
-  let h=`<tr><th>السؤال</th><th class="l">المجال</th><th class="l">المهارة / ناتج التعلم</th>${L?'<th>الإجابة الصحيحة</th>':''}<th>الدرجة</th></tr>`;
+  let h=`<tr><th>السؤال</th><th class="l">المجال</th><th class="l">المهارة / ناتج التعلم</th>${L?(S.twoForms?'<th>إجابة (أ)</th><th>إجابة (ب)</th>':'<th>الإجابة الصحيحة</th>'):''}<th>الدرجة</th></tr>`;
   S.questions.forEach((q,i)=>{
     h+=`<tr><td><b>${ar(i+1)}</b></td>
     <td class="l"><select data-q="${i}" data-f="d" style="min-width:170px">${S.domains.map(d=>`<option ${d===q.d?'selected':''}>${esc(d)}</option>`).join('')}</select></td>
     <td class="l"><input data-q="${i}" data-f="skill" value="${esc(q.skill)}" placeholder="مثال: جمع عددين من ثلاثة أرقام" style="min-width:220px"></td>
-    ${L?`<td><select data-q="${i}" data-f="key" style="width:70px"><option value="">—</option>${LETTERS.map(x=>`<option ${x===q.key?'selected':''}>${x}</option>`).join('')}</select></td>`:''}
+    ${L?`<td><select data-q="${i}" data-f="key" style="width:70px"><option value="">—</option>${LETTERS.map(x=>`<option ${x===q.key?'selected':''}>${x}</option>`).join('')}</select></td>`+(S.twoForms?`<td><select data-q="${i}" data-f="keyB" style="width:70px"><option value="">—</option>${LETTERS.map(x=>`<option ${x===q.keyB?'selected':''}>${x}</option>`).join('')}</select></td>`:''):''}
     <td><input data-q="${i}" data-f="w" value="${ar(q.w)}" inputmode="decimal" style="width:60px;text-align:center"></td></tr>`});
   $('#qtable').innerHTML=h;
 }
@@ -304,6 +311,17 @@ $('#applyN').onclick=()=>{let n=Math.round(num($('#nq').value));if(!(n>=1&&n<=12
   while(S.questions.length<n)S.questions.push({d:S.domains[S.domains.length-1]||'',skill:'',key:'',w:1});
   S.questions.length=n;S.students.forEach(s=>s.ans.length=n);fixDomains();save();renderSetup();toast('تم ضبط عدد الأسئلة: '+ar(n))};
 $('#mode').onchange=e=>{S.mode=e.target.value;save();renderQ()};
+$('#twoF').onchange=e=>{S.twoForms=e.target.checked;save();renderQ()};
+const TEMPLATES=[{name:'رياضيات ثالث — الفصل ٣: الطرح — اختبار قبلي (النموذج التاسع أ/ب)',
+ meta:{grade:'3',subject:'math',test:'اختبار قبلي — الفصل ٣: الطرح (النموذج التاسع)'},
+ domains:['م١: الجمع والطرح ضمن ثلاث منازل','م١: العلاقة بين الجمع والطرح','م٢: التقدير ومعقولية الناتج','م٣: حل مسائل حياتية'],
+ q:[[0,'طرح ضمن ثلاث منازل مع إعادة التجميع','ج','ب'],[0,'الطرح من عدد يحتوي أصفارًا','أ','د'],[0,'جمع ضمن ثلاث منازل مع إعادة التجميع','ج','ب'],
+    [1,'استعمال العلاقة بين الجمع والطرح','أ','ج'],[1,'التحقق من صحة الطرح بالجمع','ب','د'],[2,'تقدير ناتج الطرح لأقرب مئة','ب','ج'],
+    [2,'الحكم على معقولية الناتج بالتقدير','ب','أ'],[3,'مسألة حياتية بخطوة واحدة (طرح)','د','ج'],[3,'مسألة مقارنة (بكم يزيد؟)','د','أ'],[3,'مسألة حياتية بخطوتين (جمع ثم طرح)','أ','د']]}];
+$('#tplSel').innerHTML=TEMPLATES.map((t,i)=>`<option value="${i}">${t.name}</option>`).join('');
+$('#tplLoad').onclick=()=>{const t=TEMPLATES[+$('#tplSel').value];Object.assign(S.meta,t.meta);S.domains=[...t.domains];S.mode='letters';S.twoForms=true;
+  S.questions=t.q.map(([d,skill,key,keyB])=>({d:t.domains[d],skill,key,keyB,w:1}));S.students.forEach(s=>{s.ans.length=S.questions.length;for(let i=0;i<s.ans.length;i++)if(s.ans[i]==null)s.ans[i]=''});
+  save();renderSetup();toast('تم تحميل الاختبار الجاهز');};
 $('#domains').onchange=e=>{const d=e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);if(!d.length)return;S.domains=d;fixDomains();save();renderSetup()};
 $('#resetDom').onclick=()=>setSubject();
 ['lvA','lvP','lvM'].forEach((id,i)=>$('#'+id).onchange=e=>{const v=num(e.target.value);if(v>=0&&v<=100){S.levels[['adv','prof','min'][i]]=v;save()}e.target.value=ar(S.levels[['adv','prof','min'][i]])});
@@ -312,25 +330,27 @@ $('#bApply').onclick=()=>{const a=Math.round(num($('#bFrom').value)),b=Math.roun
   for(let i=a-1;i<b;i++)S.questions[i].d=d;save();renderQ();toast('تم تعيين '+d+' للأسئلة '+ar(a)+'–'+ar(b))};
 
 /* ---------- الإدخال ---------- */
-function newStudent(name){return{name,ans:Array(S.questions.length).fill('')}}
-function rowScore(s){const tot=S.questions.reduce((a,q)=>a+(+q.w||1),0);const sc=S.questions.reduce((a,q,i)=>a+corr(s.ans[i]||'',q)*(+q.w||1),0);return[sc,tot]}
+function newStudent(name){return{name,form:'أ',ans:Array(S.questions.length).fill('')}}
+function rowScore(s){const tot=S.questions.reduce((a,q)=>a+(+q.w||1),0);const sc=S.questions.reduce((a,q,i)=>a+corr(s.ans[i]||'',q,s.form)*(+q.w||1),0);return[sc,tot]}
 function cellHTML(v,q,si,qi){
-  if(S.mode==='letters'){const c=isLetter(v)&&q.key?(v===q.key?'ok':'no'):(v==='1'?'ok':v==='0'?'no':'');
+  if(S.mode==='letters'){const k=keyOf(q,S.students[si].form);const c=isLetter(v)&&k?(v===k?'ok':'no'):(v==='1'?'ok':v==='0'?'no':'');
     return `<input class="cell ${c}" data-s="${si}" data-c="${qi}" value="${v==='1'?'✓':v==='0'?'✗':esc(v)}" maxlength="2">`}
   return `<button class="cell ${v==='1'?'ok':v==='0'?'no':''}" data-s="${si}" data-c="${qi}">${v==='1'?'✓':v==='0'?'✗':'·'}</button>`}
 function renderGrid(){
   const Q=S.questions,L=S.mode==='letters';
   $('#gridHint').textContent=L?'اكتب حرف إجابة الطالب (أ ب ج د) — الأخضر صحيح والأحمر خطأ. الخانة الفارغة تُحسب «لم يُجب».':'اضغط على الخانة: · ← ✓ صحيح ← ✗ خطأ. الخانة الفارغة تُحسب خطأ.';
   if(!S.students.length){$('#grid').innerHTML='<tr><td class="empty">لا يوجد طلاب بعد — أضف الأسماء أعلاه أو الصقها من Excel، أو جرّب «بيانات تجريبية».</td></tr>';return}
-  let h=`<tr><th class="nm">اسم الطالب</th>${Q.map((q,i)=>`<th title="${esc(q.d)}">${ar(i+1)}</th>`).join('')}<th>الدرجة</th><th>٪</th><th></th></tr>`;
-  if(L)h+=`<tr><th class="nm">مفتاح الإجابة</th>${Q.map(q=>`<th style="color:var(--l0)">${q.key||'—'}</th>`).join('')}<th></th><th></th><th></th></tr>`;
+  const F=!!S.twoForms;
+  let h=`<tr><th class="nm">اسم الطالب</th>${F?'<th>النموذج</th>':''}${Q.map((q,i)=>`<th title="${esc(q.d)}">${ar(i+1)}</th>`).join('')}<th>الدرجة</th><th>٪</th><th></th></tr>`;
+  if(L)(F?['أ','ب']:['أ']).forEach(f=>{h+=`<tr><th class="nm">مفتاح الإجابة${F?' ('+f+')':''}</th>${F?'<th></th>':''}${Q.map(q=>`<th style="color:var(--l0)">${keyOf(q,f)||'—'}</th>`).join('')}<th></th><th></th><th></th></tr>`});
   S.students.forEach((s,si)=>{const[sc,tot]=rowScore(s);
-    h+=`<tr><td class="nm"><input data-name="${si}" value="${esc(s.name)}" placeholder="اسم الطالب"></td>${Q.map((q,qi)=>`<td>${cellHTML(s.ans[qi]||'',q,si,qi)}</td>`).join('')}
+    h+=`<tr><td class="nm"><input data-name="${si}" value="${esc(s.name)}" placeholder="اسم الطالب"></td>${F?`<td><button class="cell" style="width:44px" data-form="${si}">${s.form==='ب'?'ب':'أ'}</button></td>`:''}${Q.map((q,qi)=>`<td>${cellHTML(s.ans[qi]||'',q,si,qi)}</td>`).join('')}
     <td id="sc${si}"><b>${ar(+sc.toFixed(2))}</b>/${ar(tot)}</td><td id="pc${si}">${tot?P(sc/tot*100):''}</td><td><button class="btn red" style="padding:2px 8px" data-del="${si}">حذف</button></td></tr>`});
   $('#grid').innerHTML=h;
 }
 function updRow(si){const[sc,tot]=rowScore(S.students[si]);$('#sc'+si).innerHTML=`<b>${ar(+sc.toFixed(2))}</b>/${ar(tot)}`;$('#pc'+si).textContent=tot?P(sc/tot*100):''}
 $('#grid').addEventListener('click',e=>{
+  const fb=e.target.closest('[data-form]');if(fb){const s=S.students[+fb.dataset.form];s.form=s.form==='ب'?'أ':'ب';save();renderGrid();return}
   const b=e.target.closest('button.cell');if(b){const s=S.students[+b.dataset.s],i=+b.dataset.c;const v=s.ans[i]||'';
     s.ans[i]=v===''?'1':v==='1'?'0':'';b.outerHTML=cellHTML(s.ans[i],S.questions[i],+b.dataset.s,i);updRow(+b.dataset.s);save();return}
   const d=e.target.closest('[data-del]');if(d){const si=+d.dataset.del;if(d.dataset.sure){S.students.splice(si,1);save();renderGrid()}else{d.dataset.sure=1;d.textContent='تأكيد؟'}}
@@ -338,7 +358,7 @@ $('#grid').addEventListener('click',e=>{
 $('#grid').addEventListener('input',e=>{const el=e.target;
   if(el.dataset.name!=null){S.students[+el.dataset.name].name=el.value;save();return}
   if(el.classList.contains('cell')){const si=+el.dataset.s,i=+el.dataset.c;const v=normVal(el.value);S.students[si].ans[i]=v;
-    const q=S.questions[i];el.className='cell '+(isLetter(v)&&q.key?(v===q.key?'ok':'no'):(v==='1'?'ok':v==='0'?'no':''));
+    const q=S.questions[i],k=keyOf(q,S.students[si].form);el.className='cell '+(isLetter(v)&&k?(v===k?'ok':'no'):(v==='1'?'ok':v==='0'?'no':''));
     if(v&&el.value!==v&&isLetter(v))el.value=v;updRow(si);save();
     if(v){const nx=el.closest('td').nextElementSibling?.querySelector('input.cell');if(nx)nx.focus()}}
 });
@@ -388,16 +408,16 @@ function analyze(st){
   const Q=st.questions,W=Q.map(q=>+q.w||1),tot=W.reduce((a,b)=>a+b,0);
   const doms=[...st.domains.filter(d=>Q.some(q=>q.d===d)),...[...new Set(Q.map(q=>q.d))].filter(d=>!st.domains.includes(d))];
   const studs=st.students.filter(s=>s.name.trim()&&s.ans.some(v=>v));
-  const rows=studs.map(s=>{const c=Q.map((q,i)=>corr(s.ans[i]||'',q));const sc=c.reduce((a,x,i)=>a+x*W[i],0);const p=tot?sc/tot*100:0;
+  const rows=studs.map(s=>{const c=Q.map((q,i)=>corr(s.ans[i]||'',q,s.form));const sc=c.reduce((a,x,i)=>a+x*W[i],0);const p=tot?sc/tot*100:0;
     const dom={};doms.forEach(d=>{let g=0,m=0;Q.forEach((q,i)=>{if(q.d===d){g+=c[i]*W[i];m+=W[i]}});dom[d]=m?g/m*100:0});
     const weak=doms.slice().sort((a,b)=>dom[a]-dom[b])[0];
-    return{name:s.name,ans:s.ans,c,sc,p,lv:levelOf(p,st.levels),dom,weak}});
+    return{name:s.name,form:s.form||'أ',ans:s.ans,c,sc,p,lv:levelOf(p,st.levels),dom,weak}});
   const N=rows.length;
   const sorted=rows.slice().sort((a,b)=>b.sc-a.sc);const k=N>=4?Math.max(1,Math.round(N*.27)):0;
   const up=sorted.slice(0,k),lo=sorted.slice(N-k);
   const items=Q.map((q,i)=>{const p=N?rows.reduce((a,r)=>a+r.c[i],0)/N*100:0;
     const D=k?(up.reduce((a,r)=>a+r.c[i],0)-lo.reduce((a,r)=>a+r.c[i],0))/k:null;
-    const dist={};LETTERS.forEach(l=>dist[l]=0);let blank=0;rows.forEach(r=>{const v=r.ans[i]||'';if(isLetter(v))dist[v]++;else if(!v)blank++});
+    const dist={};LETTERS.forEach(l=>dist[l]=0);let blank=0;rows.forEach(r=>{if(st.twoForms&&r.form==='ب')return;const v=r.ans[i]||'';if(isLetter(v))dist[v]++;else if(!v)blank++});
     return{i,q,p,D,dist,blank}});
   const domAvg={};doms.forEach(d=>domAvg[d]=N?rows.reduce((a,r)=>a+r.dom[d],0)/N:0);
   const lvCount=[0,0,0,0];rows.forEach(r=>lvCount[r.lv]++);
@@ -452,13 +472,13 @@ function renderReport(){
   h+=`<div class="card"><h2>الأداء حسب المجالات</h2><div class="scroll"><table><tr><th class="l">المجال</th><th>عدد الأسئلة</th><th style="min-width:140px">نسبة الإتقان</th><th>%</th><th>الحالة</th></tr>
    ${A.doms.map(d=>{const p=A.domAvg[d],s=domSt(p);return `<tr><td class="l">${esc(d)}</td><td>${ar(A.Q.filter(q=>q.d===d).length)}</td><td>${barH(p,s[2])}</td><td><b>${P(p)}</b></td><td><span class="pill ${s[1]}">${s[0]}</span></td></tr>`}).join('')}</table></div></div>`;
   // أسئلة
-  h+=`<div class="card"><h2>تحليل الأسئلة (المفردات)</h2><p class="note">معامل السهولة = نسبة من أجاب إجابة صحيحة. معامل التمييز = الفرق بين أعلى ٢٧٪ وأدنى ٢٧٪ من الطلاب${A.N<4?' (يحتاج ٤ طلاب فأكثر)':''}.</p>
+  h+=`<div class="card"><h2>تحليل الأسئلة (المفردات)</h2><p class="note">${L&&S.twoForms?'توزيع الاختيارات (أ ب ج د) محسوب لطلاب النموذج (أ) فقط، والمفتاح المظلل مفتاح (أ). ':''}معامل السهولة = نسبة من أجاب إجابة صحيحة. معامل التمييز = الفرق بين أعلى ٢٧٪ وأدنى ٢٧٪ من الطلاب${A.N<4?' (يحتاج ٤ طلاب فأكثر)':''}.</p>
    <div class="scroll"><table><tr><th>س</th><th class="l">المجال</th><th class="l">المهارة</th><th style="min-width:110px">الإجابة الصحيحة</th><th>٪</th><th>الصعوبة</th><th>التمييز</th>${L?LETTERS.map(l=>`<th>${l}</th>`).join('')+'<th>فارغ</th>':''}</tr>
    ${A.items.map(x=>{const d=diffLbl(x.p),ds=discLbl(x.D);return `<tr><td><b>${ar(x.i+1)}</b></td><td class="l">${esc(x.q.d)}</td><td class="l">${esc(x.q.skill)||'—'}</td>
     <td>${barH(x.p,x.p>=80?LVC[0]:x.p>=40?LVC[1]:LVC[3])}</td><td>${P(x.p)}</td><td><span class="pill ${d[1]}">${d[0]}</span></td>
     <td>${x.D==null?'—':ar(x.D.toFixed(2))} <span class="pill ${ds[1]}">${ds[0]}</span></td>
     ${L?LETTERS.map(l=>`<td style="${l===x.q.key?'font-weight:800;color:var(--l0);background:#f0fdf4':''}">${ar(x.dist[l])}</td>`).join('')+`<td>${ar(x.blank)}</td>`:''}</tr>`}).join('')}</table></div>
-   ${L&&A.Q.some(q=>!q.key)?'<p class="note" style="color:var(--l3)">تنبيه: بعض الأسئلة بدون مفتاح إجابة — أكملها في تبويب الإعداد.</p>':''}</div>`;
+   ${L&&A.Q.some(q=>!q.key||(S.twoForms&&!q.keyB))?'<p class="note" style="color:var(--l3)">تنبيه: بعض الأسئلة بدون مفتاح إجابة — أكملها في تبويب الإعداد.</p>':''}</div>`;
   // طلاب
   const rs=A.rows.slice().sort((a,b)=>b.p-a.p);
   h+=`<div class="card"><h2>نتائج الطلاب</h2><div class="scroll"><table><tr><th>م</th><th class="l">اسم الطالب</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th>${A.doms.map(d=>`<th style="font-size:12px;white-space:normal;min-width:80px">${esc(d)}</th>`).join('')}<th class="l">أضعف مجال</th></tr>
@@ -479,7 +499,7 @@ $('#copy').onclick=async()=>{const A=analyze(S);if(!A.N){toast('لا توجد ب
   try{await navigator.clipboard.writeText(t);toast('تم نسخ الملخص')}catch(e){toast('تعذّر النسخ')}};
 $('#xls').onclick=()=>{const A=analyze(S);if(!A.N){toast('لا توجد بيانات');return}if(typeof XLSX==='undefined'){toast('مكتبة Excel غير متاحة');return}
   const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};const R=x=>Math.round(x);
-  const s1=[['م','اسم الطالب','الدرجة','من','النسبة %','المستوى',...A.doms,'أضعف مجال'],...A.rows.slice().sort((a,b)=>b.p-a.p).map((r,i)=>[i+1,r.name,+r.sc.toFixed(2),A.tot,R(r.p),LV[r.lv],...A.doms.map(d=>R(r.dom[d])),r.weak])];
+  const s1=[['م','اسم الطالب','النموذج','الدرجة','من','النسبة %','المستوى',...A.doms,'أضعف مجال'],...A.rows.slice().sort((a,b)=>b.p-a.p).map((r,i)=>[i+1,r.name,r.form,+r.sc.toFixed(2),A.tot,R(r.p),LV[r.lv],...A.doms.map(d=>R(r.dom[d])),r.weak])];
   const s2=[['السؤال','المجال','المهارة','الإجابة الصحيحة','نسبة الإجابة الصحيحة %','الصعوبة','معامل التمييز','التمييز',...(S.mode==='letters'?LETTERS:[])],...A.items.map(x=>[x.i+1,x.q.d,x.q.skill,x.q.key||'',R(x.p),diffLbl(x.p)[0],x.D==null?'':+x.D.toFixed(2),discLbl(x.D)[0],...(S.mode==='letters'?LETTERS.map(l=>x.dist[l]):[])])];
   const s3=[['المجال','نسبة الإتقان %','الحالة'],...A.doms.map(d=>[d,R(A.domAvg[d]),domSt(A.domAvg[d])[0]]),[],['المستوى','العدد','النسبة %'],...LV.map((n,i)=>[n,A.lvCount[i],R(A.lvCount[i]/A.N*100)]),[],['المتوسط %',R(A.mean)],['متمكن فأعلى %',R(A.prof)]];
   const s4=[['التوصيات'],...recs(A).map(x=>[x])];
