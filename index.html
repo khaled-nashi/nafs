@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محلل اختبارات نافس — الصف الثالث والسادس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--ink:#1f2a37;--mut:#6b7280;--line:#e5e7eb;--bg:#f6f7f9;--card:#fff;--pri:#0f766e;--pri2:#ccfbf1;
+--l0:#15803d;--l0b:#dcfce7;--l1:#1d4ed8;--l1b:#dbeafe;--l2:#b45309;--l2b:#fef3c7;--l3:#b91c1c;--l3b:#fee2e2}
+*{box-sizing:border-box}
+body{margin:0;font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6}
+header{background:linear-gradient(135deg,#0f766e,#115e59);color:#fff;padding:18px 16px 14px}
+header h1{margin:0;font-size:21px;font-weight:800}
+header p{margin:2px 0 0;font-size:13px;opacity:.9}
+nav{display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;overflow-x:auto}
+nav button{flex:1;min-width:max-content;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-weight:700;color:var(--mut);cursor:pointer}
+nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:1150px;margin:0 auto;padding:14px 12px 60px}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:17px;color:var(--pri)}
+.card h3{margin:12px 0 6px;font-size:15px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+label{display:block;font-size:13px;color:var(--mut);font-weight:600}
+input,select,textarea{width:100%;font:inherit;border:1px solid #d1d5db;border-radius:9px;padding:7px 9px;background:#fff;color:var(--ink)}
+textarea{min-height:110px;direction:rtl}
+.btn{border:0;background:var(--pri);color:#fff;font:inherit;font-weight:700;border-radius:10px;padding:8px 14px;cursor:pointer}
+.btn.sec{background:#fff;color:var(--pri);border:1px solid var(--pri)}
+.btn.gray{background:#f3f4f6;color:var(--ink);border:1px solid var(--line)}
+.btn.red{background:#fff;color:var(--l3);border:1px solid #fecaca}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.row>*{flex:0 0 auto}
+.note{font-size:13px;color:var(--mut);margin:6px 0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:center;white-space:nowrap}
+th{background:#f3f4f6;font-weight:700}
+td.l,th.l{text-align:right}
+#grid td,#grid th{padding:3px}
+#grid .nm{position:sticky;right:0;background:#fff;z-index:2;min-width:150px;text-align:right}
+#grid th.nm{background:#f3f4f6}
+#grid .nm input{border:0;padding:4px}
+.cell{width:34px;height:32px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;font:inherit;font-weight:800;cursor:pointer;padding:0}
+.cell.ok{background:var(--l0b);color:var(--l0);border-color:#bbf7d0}
+.cell.no{background:var(--l3b);color:var(--l3);border-color:#fecaca}
+input.cell{text-align:center;cursor:text}
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font-size:24px;color:var(--pri);font-weight:800}
+.kpi span{font-size:13px;color:var(--mut)}
+.bar{background:#f1f5f9;border-radius:6px;height:16px;overflow:hidden;min-width:90px}
+.bar>i{display:block;height:100%;border-radius:6px}
+.stack{display:flex;height:30px;border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+.stack>div{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;overflow:hidden}
+.pill{display:inline-block;padding:1px 9px;border-radius:20px;font-size:12px;font-weight:700}
+.lv0{background:var(--l0b);color:var(--l0)}.lv1{background:var(--l1b);color:var(--l1)}.lv2{background:var(--l2b);color:var(--l2)}.lv3{background:var(--l3b);color:var(--l3)}
+.groups{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.group{border:1px solid var(--line);border-radius:12px;padding:10px}
+.group h4{margin:0 0 6px}
+.group ol{margin:0;padding-right:20px;font-size:14px}
+.recs li{margin-bottom:6px}
+.rhead{display:none}
+.sign{display:none}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:9px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:50;max-width:90%}
+#toast.show{opacity:1}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:10px}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff;font-size:12px}
+  header,nav,.no-print,footer,#toast{display:none!important}
+  .tab{display:none!important}#tab-analysis{display:block!important}
+  main{padding:0;max-width:none}
+  .card{border:1px solid #ccc;break-inside:avoid;padding:8px;margin-bottom:8px}
+  .card h2{color:#000}
+  th{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .kpi b{color:#000}
+  .bar>i,.stack>div,.pill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rhead{display:block;text-align:center;border-bottom:2px solid #999;margin-bottom:10px;padding-bottom:6px}
+  .rhead h2{margin:0;font-size:17px}
+  .sign{display:flex;justify-content:space-around;margin-top:30px}
+  .scroll{overflow:visible}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>محلل اختبارات نافس</h1>
+  <p>الصف الثالث (الرياضيات – القراءة) • الصف السادس (الرياضيات – القراءة – العلوم)</p>
+</header>
+<nav>
+  <button data-tab="setup" class="on">١ الإعداد</button>
+  <button data-tab="entry">٢ إدخال الإجابات</button>
+  <button data-tab="analysis">٣ التحليل والتقرير</button>
+  <button data-tab="saved">٤ المحفوظة والمقارنة</button>
+</nav>
+<main>
+
+<!-- ===== الإعداد ===== -->
+<section class="tab on" id="tab-setup">
+  <div class="card">
+    <h2>بيانات الاختبار</h2>
+    <div class="grid">
+      <div><label>المدرسة</label><input data-meta="school"></div>
+      <div><label>معلم المادة</label><input data-meta="teacher" placeholder="اسم المعلم"></div>
+      <div><label>الصف</label><select data-meta="grade"><option value="3">الثالث الابتدائي</option><option value="6">السادس الابتدائي</option></select></div>
+      <div><label>المادة</label><select data-meta="subject"></select></div>
+      <div><label>الفصل / الشعبة</label><input data-meta="cls" placeholder="مثال: ٣/أ"></div>
+      <div><label>نوع الاختبار</label><input data-meta="test" list="tests"><datalist id="tests"><option>اختبار قبلي</option><option>اختبار بعدي</option><option>اختبار تجريبي ١</option><option>اختبار تجريبي ٢</option><option>اختبار تشخيصي</option></datalist></div>
+      <div><label>التاريخ</label><input data-meta="date"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>الأسئلة وطريقة الإدخال</h2>
+    <div class="row">
+      <div style="width:120px"><label>عدد الأسئلة</label><input id="nq" inputmode="numeric"></div>
+      <button class="btn" id="applyN">تطبيق</button>
+      <div style="width:230px"><label>طريقة إدخال الإجابات</label>
+        <select id="mode"><option value="tf">صح / خطأ (✓ ✗)</option><option value="letters">حرف الإجابة (أ ب ج د) مع مفتاح</option></select></div>
+    </div>
+    <p class="note">«صح/خطأ»: تضغط على الخانة فتتبدل ✓ ← ✗. «حرف الإجابة»: تكتب اختيار الطالب ويُصحَّح تلقائيًا بالمفتاح، ويظهر لك تحليل المشتتات.</p>
+    <h3>توزيع سريع للمجالات</h3>
+    <div class="row">
+      <div style="width:80px"><label>من سؤال</label><input id="bFrom" inputmode="numeric"></div>
+      <div style="width:80px"><label>إلى سؤال</label><input id="bTo" inputmode="numeric"></div>
+      <div style="width:230px"><label>المجال</label><select id="bDom"></select></div>
+      <button class="btn sec" id="bApply">تعيين</button>
+    </div>
+    <div class="scroll" style="margin-top:12px"><table id="qtable"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>المجالات ومستويات الأداء</h2>
+    <label>مجالات المادة (مجال في كل سطر — تقدر تعدّلها حسب مخرجات نافس عندك)</label>
+    <textarea id="domains"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn gray" id="resetDom">استعادة المجالات الافتراضية</button></div>
+    <h3>حدود مستويات الأداء (٪)</h3>
+    <div class="row">
+      <div style="width:120px"><label>متقدم من</label><input id="lvA" inputmode="numeric"></div>
+      <div style="width:120px"><label>متمكن من</label><input id="lvP" inputmode="numeric"></div>
+      <div style="width:120px"><label>الحد الأدنى من</label><input id="lvM" inputmode="numeric"></div>
+    </div>
+    <p class="note">أقل من «الحد الأدنى» يُصنَّف: دون الحد الأدنى.</p>
+  </div>
+</section>
+
+<!-- ===== الإدخال ===== -->
+<section class="tab" id="tab-entry">
+  <div class="card">
+    <h2>إضافة الطلاب</h2>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>اسم الطالب</label><input id="sname" placeholder="اكتب الاسم ثم إضافة"></div>
+      <button class="btn" id="addS">إضافة</button>
+      <button class="btn gray" id="add5">+ ٥ صفوف فارغة</button>
+    </div>
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-weight:700;color:var(--pri)">لصق من Excel أو رفع ملف</summary>
+      <p class="note">انسخ من Excel: عمود الاسم ثم عمود لكل سؤال. القيم المقبولة: ١/٠، ص/خ، ✓/✗، أو حروف (أ ب ج د).</p>
+      <textarea id="paste" placeholder="محمد أحمد	1	0	1 ..."></textarea>
+      <div class="row" style="margin-top:8px">
+        <label style="display:flex;gap:6px;align-items:center;color:var(--ink)"><input type="checkbox" id="replace" style="width:auto"> استبدال الطلاب الحاليين</label>
+        <button class="btn" id="doPaste">استيراد الملصوق</button>
+        <label class="btn sec" style="color:var(--pri)">رفع ملف Excel/CSV<input type="file" id="file" accept=".xlsx,.xls,.csv" hidden></label>
+        <button class="btn gray" id="tpl">تحميل قالب Excel</button>
+      </div>
+    </details>
+  </div>
+  <div class="card">
+    <h2>جدول الإجابات</h2>
+    <p class="note" id="gridHint"></p>
+    <div class="scroll"><table id="grid"></table></div>
+    <div class="row no-print" style="margin-top:10px">
+      <button class="btn" data-go="analysis">عرض التحليل ←</button>
+      <button class="btn gray" id="sample">بيانات تجريبية للتجربة</button>
+      <button class="btn red" id="clearS">مسح كل الطلاب</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== التحليل ===== -->
+<section class="tab" id="tab-analysis">
+  <div class="row no-print" style="margin-bottom:12px">
+    <button class="btn" id="print">طباعة / PDF</button>
+    <button class="btn sec" id="xls">تصدير Excel</button>
+    <button class="btn sec" id="copy">نسخ الملخص</button>
+    <button class="btn gray" id="saveT">حفظ هذا الاختبار</button>
+  </div>
+  <p class="note no-print">الطباعة وتحميل الملفات تعمل عند فتح الأداة من رابطها المباشر أو من المتصفح؛ داخل معاينة تطبيق Claude استخدم «نسخ الملخص».</p>
+  <div id="report"></div>
+</section>
+
+<!-- ===== المحفوظة ===== -->
+<section class="tab" id="tab-saved">
+  <div class="card">
+    <h2>الاختبارات المحفوظة (على هذا الجهاز)</h2>
+    <div id="savedList"></div>
+  </div>
+  <div class="card">
+    <h2>مقارنة اختبارين (قبلي ↔ بعدي)</h2>
+    <div class="row">
+      <div style="min-width:220px;flex:1"><label>الاختبار الأول</label><select id="cA"></select></div>
+      <div style="min-width:220px;flex:1"><label>الاختبار الثاني</label><select id="cB"></select></div>
+      <button class="btn" id="doCmp">قارن</button>
+    </div>
+    <div id="cmp" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <h2>نسخة احتياطية</h2>
+    <p class="note">انسخ البيانات واحفظها (مثلًا في ملاحظاتك)، أو الصق نسخة سابقة لاستعادتها.</p>
+    <textarea id="bk" placeholder="الصق النسخة الاحتياطية هنا"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn sec" id="bkCopy">نسخ كل البيانات</button><button class="btn gray" id="bkRestore">استعادة</button></div>
+  </div>
+</section>
+</main>
+<footer>إعداد: المعلم خالد ناشي السعدي</footer>
+<div id="toast"></div>
+
+<script>
+/* ---------- أدوات ---------- */
+const AR='٠١٢٣٤٥٦٧٨٩';
+const ar=v=>String(v).replace(/\d/g,d=>AR[d]).replace(/\./g,'٫');
+const en=v=>String(v).replace(/[٠-٩]/g,d=>AR.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+const num=v=>parseFloat(en(v));
+const P=x=>ar(Math.round(x))+'٪';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)}
+function hijri(){try{return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-arab',{day:'numeric',month:'numeric',year:'numeric'}).format(new Date())}catch(e){return ''}}
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+const SUBJ={math:'الرياضيات',read:'القراءة (لغتي)',sci:'العلوم'};
+const PRESETS={
+  math:['الأعداد والعمليات عليها','الجبر والأنماط','الهندسة والقياس','الإحصاء والاحتمالات'],
+  read:['المعجم اللغوي (المفردات)','استرجاع المعلومات الصريحة','الاستنتاج','التفسير والتحليل','التقويم والنقد'],
+  sci:['علوم الحياة','العلوم الفيزيائية','علوم الأرض والفضاء']
+};
+const LV=['متقدم','متمكن','الحد الأدنى','دون الحد الأدنى'];
+const LVC=['#16a34a','#2563eb','#d97706','#dc2626'];
+const LETTERS=['أ','ب','ج','د'];
+
+function defState(){return{meta:{school:'ابتدائية المحمدية',teacher:'',grade:'3',subject:'math',cls:'',test:'اختبار قبلي',date:hijri()},
+ mode:'tf',domains:[...PRESETS.math],questions:Array.from({length:10},(_,i)=>({d:PRESETS.math[Math.floor(i*4/10)],skill:'',key:'',w:1})),
+ students:[],levels:{adv:85,prof:65,min:50}}}
+let S=LS.get('nafs_cur10')||defState();
+function save(){LS.set('nafs_cur10',S)}
+
+/* ---------- تطبيع القيم ---------- */
+function normVal(v){
+  v=String(v??'').trim(); if(!v) return '';
+  const l=v.toLowerCase();
+  if(['1','١','✓','✔','ص','صح','صحيح','true','نعم','y'].includes(l)) return '1';
+  if(['0','٠','✗','✘','x','خ','خطأ','خطا','false','لا','n','×'].includes(l)) return '0';
+  const m={'a':'أ','b':'ب','c':'ج','d':'د','أ':'أ','ا':'أ','إ':'أ','آ':'أ','ب':'ب','ج':'ج','د':'د'};
+  return m[l]||'';
+}
+const isLetter=v=>LETTERS.includes(v);
+function corr(v,q){if(v==='1')return 1;if(v==='0')return 0;if(isLetter(v)&&q.key)return v===q.key?1:0;return 0}
+
+/* ---------- التبويبات ---------- */
+function go(t){document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+ document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+t));
+ if(t==='entry')renderGrid(); if(t==='analysis')renderReport(); if(t==='saved')renderSaved(); window.scrollTo(0,0)}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+
+/* ---------- الإعداد ---------- */
+function subjOptions(){const s=$('[data-meta=subject]');const opts=S.meta.grade==='6'?['math','read','sci']:['math','read'];
+ s.innerHTML=opts.map(k=>`<option value="${k}">${SUBJ[k]}</option>`).join('');s.value=S.meta.subject}
+function fixDomains(){S.questions.forEach((q,i)=>{if(!S.domains.includes(q.d))q.d=S.domains[Math.floor(i*S.domains.length/S.questions.length)]||''})}
+function renderSetup(){
+  document.querySelectorAll('[data-meta]').forEach(el=>{if(el.dataset.meta!=='subject')el.value=S.meta[el.dataset.meta]??''});
+  subjOptions();
+  $('#nq').value=ar(S.questions.length);$('#mode').value=S.mode;
+  $('#domains').value=S.domains.join('\n');
+  $('#lvA').value=ar(S.levels.adv);$('#lvP').value=ar(S.levels.prof);$('#lvM').value=ar(S.levels.min);
+  $('#bDom').innerHTML=S.domains.map(d=>`<option>${esc(d)}</option>`).join('');
+  renderQ();
+}
+function renderQ(){
+  const L=S.mode==='letters';
+  let h=`<tr><th>السؤال</th><th class="l">المجال</th><th class="l">المهارة / ناتج التعلم</th>${L?'<th>الإجابة الصحيحة</th>':''}<th>الدرجة</th></tr>`;
+  S.questions.forEach((q,i)=>{
+    h+=`<tr><td><b>${ar(i+1)}</b></td>
+    <td class="l"><select data-q="${i}" data-f="d" style="min-width:170px">${S.domains.map(d=>`<option ${d===q.d?'selected':''}>${esc(d)}</option>`).join('')}</select></td>
+    <td class="l"><input data-q="${i}" data-f="skill" value="${esc(q.skill)}" placeholder="مثال: جمع عددين من ثلاثة أرقام" style="min-width:220px"></td>
+    ${L?`<td><select data-q="${i}" data-f="key" style="width:70px"><option value="">—</option>${LETTERS.map(x=>`<option ${x===q.key?'selected':''}>${x}</option>`).join('')}</select></td>`:''}
+    <td><input data-q="${i}" data-f="w" value="${ar(q.w)}" inputmode="decimal" style="width:60px;text-align:center"></td></tr>`});
+  $('#qtable').innerHTML=h;
+}
+$('#qtable').addEventListener('input',e=>{const el=e.target;if(el.dataset.q==null)return;const q=S.questions[+el.dataset.q];
+  q[el.dataset.f]=el.dataset.f==='w'?(num(el.value)||1):el.value;save()});
+$('#qtable').addEventListener('change',e=>{if(e.target.dataset.f==='w')e.target.value=ar(S.questions[+e.target.dataset.q].w)});
+document.querySelectorAll('[data-meta]').forEach(el=>el.addEventListener('input',()=>{
+  const k=el.dataset.meta;S.meta[k]=el.value;
+  if(k==='grade'){if(S.meta.grade==='3'&&S.meta.subject==='sci'){S.meta.subject='math';setSubject()}subjOptions()}
+  if(k==='subject')setSubject();
+  save()}));
+function setSubject(){S.domains=[...PRESETS[S.meta.subject]];fixDomains();renderSetup()}
+$('#applyN').onclick=()=>{let n=Math.round(num($('#nq').value));if(!(n>=1&&n<=120)){toast('اكتب عددًا بين ١ و١٢٠');return}
+  while(S.questions.length<n)S.questions.push({d:S.domains[S.domains.length-1]||'',skill:'',key:'',w:1});
+  S.questions.length=n;S.students.forEach(s=>s.ans.length=n);fixDomains();save();renderSetup();toast('تم ضبط عدد الأسئلة: '+ar(n))};
+$('#mode').onchange=e=>{S.mode=e.target.value;save();renderQ()};
+$('#domains').onchange=e=>{const d=e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);if(!d.length)return;S.domains=d;fixDomains();save();renderSetup()};
+$('#resetDom').onclick=()=>setSubject();
+['lvA','lvP','lvM'].forEach((id,i)=>$('#'+id).onchange=e=>{const v=num(e.target.value);if(v>=0&&v<=100){S.levels[['adv','prof','min'][i]]=v;save()}e.target.value=ar(S.levels[['adv','prof','min'][i]])});
+$('#bApply').onclick=()=>{const a=Math.round(num($('#bFrom').value)),b=Math.round(num($('#bTo').value)),d=$('#bDom').value;
+  if(!(a>=1&&b>=a&&b<=S.questions.length)){toast('تحقق من أرقام الأسئلة');return}
+  for(let i=a-1;i<b;i++)S.questions[i].d=d;save();renderQ();toast('تم تعيين '+d+' للأسئلة '+ar(a)+'–'+ar(b))};
+
+/* ---------- الإدخال ---------- */
+function newStudent(name){return{name,ans:Array(S.questions.length).fill('')}}
+function rowScore(s){const tot=S.questions.reduce((a,q)=>a+(+q.w||1),0);const sc=S.questions.reduce((a,q,i)=>a+corr(s.ans[i]||'',q)*(+q.w||1),0);return[sc,tot]}
+function cellHTML(v,q,si,qi){
+  if(S.mode==='letters'){const c=isLetter(v)&&q.key?(v===q.key?'ok':'no'):(v==='1'?'ok':v==='0'?'no':'');
+    return `<input class="cell ${c}" data-s="${si}" data-c="${qi}" value="${v==='1'?'✓':v==='0'?'✗':esc(v)}" maxlength="2">`}
+  return `<button class="cell ${v==='1'?'ok':v==='0'?'no':''}" data-s="${si}" data-c="${qi}">${v==='1'?'✓':v==='0'?'✗':'·'}</button>`}
+function renderGrid(){
+  const Q=S.questions,L=S.mode==='letters';
+  $('#gridHint').textContent=L?'اكتب حرف إجابة الطالب (أ ب ج د) — الأخضر صحيح والأحمر خطأ. الخانة الفارغة تُحسب «لم يُجب».':'اضغط على الخانة: · ← ✓ صحيح ← ✗ خطأ. الخانة الفارغة تُحسب خطأ.';
+  if(!S.students.length){$('#grid').innerHTML='<tr><td class="empty">لا يوجد طلاب بعد — أضف الأسماء أعلاه أو الصقها من Excel، أو جرّب «بيانات تجريبية».</td></tr>';return}
+  let h=`<tr><th class="nm">اسم الطالب</th>${Q.map((q,i)=>`<th title="${esc(q.d)}">${ar(i+1)}</th>`).join('')}<th>الدرجة</th><th>٪</th><th></th></tr>`;
+  if(L)h+=`<tr><th class="nm">مفتاح الإجابة</th>${Q.map(q=>`<th style="color:var(--l0)">${q.key||'—'}</th>`).join('')}<th></th><th></th><th></th></tr>`;
+  S.students.forEach((s,si)=>{const[sc,tot]=rowScore(s);
+    h+=`<tr><td class="nm"><input data-name="${si}" value="${esc(s.name)}" placeholder="اسم الطالب"></td>${Q.map((q,qi)=>`<td>${cellHTML(s.ans[qi]||'',q,si,qi)}</td>`).join('')}
+    <td id="sc${si}"><b>${ar(+sc.toFixed(2))}</b>/${ar(tot)}</td><td id="pc${si}">${tot?P(sc/tot*100):''}</td><td><button class="btn red" style="padding:2px 8px" data-del="${si}">حذف</button></td></tr>`});
+  $('#grid').innerHTML=h;
+}
+function updRow(si){const[sc,tot]=rowScore(S.students[si]);$('#sc'+si).innerHTML=`<b>${ar(+sc.toFixed(2))}</b>/${ar(tot)}`;$('#pc'+si).textContent=tot?P(sc/tot*100):''}
+$('#grid').addEventListener('click',e=>{
+  const b=e.target.closest('button.cell');if(b){const s=S.students[+b.dataset.s],i=+b.dataset.c;const v=s.ans[i]||'';
+    s.ans[i]=v===''?'1':v==='1'?'0':'';b.outerHTML=cellHTML(s.ans[i],S.questions[i],+b.dataset.s,i);updRow(+b.dataset.s);save();return}
+  const d=e.target.closest('[data-del]');if(d){const si=+d.dataset.del;if(d.dataset.sure){S.students.splice(si,1);save();renderGrid()}else{d.dataset.sure=1;d.textContent='تأكيد؟'}}
+});
+$('#grid').addEventListener('input',e=>{const el=e.target;
+  if(el.dataset.name!=null){S.students[+el.dataset.name].name=el.value;save();return}
+  if(el.classList.contains('cell')){const si=+el.dataset.s,i=+el.dataset.c;const v=normVal(el.value);S.students[si].ans[i]=v;
+    const q=S.questions[i];el.className='cell '+(isLetter(v)&&q.key?(v===q.key?'ok':'no'):(v==='1'?'ok':v==='0'?'no':''));
+    if(v&&el.value!==v&&isLetter(v))el.value=v;updRow(si);save();
+    if(v){const nx=el.closest('td').nextElementSibling?.querySelector('input.cell');if(nx)nx.focus()}}
+});
+$('#addS').onclick=()=>{const n=$('#sname').value.trim();if(!n){$('#sname').focus();return}S.students.push(newStudent(n));$('#sname').value='';save();renderGrid();$('#sname').focus()};
+$('#sname').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addS').click()});
+$('#add5').onclick=()=>{for(let i=0;i<5;i++)S.students.push(newStudent(''));save();renderGrid()};
+$('#clearS').onclick=e=>{const b=e.target;if(!b.dataset.sure){b.dataset.sure=1;b.textContent='اضغط مرة ثانية للتأكيد';setTimeout(()=>{delete b.dataset.sure;b.textContent='مسح كل الطلاب'},3000);return}
+  S.students=[];save();renderGrid();b.textContent='مسح كل الطلاب';delete b.dataset.sure};
+
+function importRows(rows){
+  rows=rows.map(r=>r.map(c=>String(c??'').trim())).filter(r=>r.some(Boolean));
+  if(rows.length&&/اسم|الطالب|name/i.test(rows[0][0]))rows.shift();
+  if(!rows.length){toast('لم أجد بيانات');return}
+  const maxQ=Math.max(...rows.map(r=>r.length-1));
+  if(maxQ>S.questions.length){while(S.questions.length<maxQ)S.questions.push({d:S.domains[S.domains.length-1]||'',skill:'',key:'',w:1});S.students.forEach(s=>s.ans.length=maxQ)}
+  let letters=false;
+  const st=rows.map(r=>{const s=newStudent(r[0]);for(let i=1;i<r.length&&i<=S.questions.length;i++){const v=normVal(r[i]);if(isLetter(v))letters=true;s.ans[i-1]=v}return s});
+  if($('#replace').checked)S.students=st;else S.students.push(...st);
+  if(letters&&S.mode!=='letters'){S.mode='letters';toast('تم التحويل لوضع «حرف الإجابة» — لا تنسَ إدخال مفتاح الإجابة في الإعداد')}else toast('تم استيراد '+ar(st.length)+' طالب');
+  save();renderSetup();renderGrid();
+}
+$('#doPaste').onclick=()=>{const t=$('#paste').value;if(!t.trim())return;
+  importRows(t.split(/\r?\n/).map(l=>l.includes('\t')?l.split('\t'):l.split(/[,،;]/)));$('#paste').value=''};
+$('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+  try{if(typeof XLSX==='undefined'){if(/\.csv$/i.test(f.name)){const t=await f.text();importRows(t.split(/\r?\n/).map(l=>l.split(/[,،;\t]/)))}else toast('تعذّر تحميل مكتبة Excel — استخدم اللصق');return}
+    const wb=XLSX.read(await f.arrayBuffer());importRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}))}
+  catch(err){toast('تعذّرت قراءة الملف')}e.target.value=''};
+function dl(wb,name){try{XLSX.writeFile(wb,name)}catch(e){toast('التحميل غير متاح هنا — افتح الأداة من رابطها المباشر')}}
+$('#tpl').onclick=()=>{if(typeof XLSX==='undefined'){toast('مكتبة Excel غير متاحة');return}
+  const head=['اسم الطالب',...S.questions.map((_,i)=>'س'+(i+1))];const ws=XLSX.utils.aoa_to_sheet([head]);ws['!cols']=[{wch:28}];
+  const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};XLSX.utils.book_append_sheet(wb,ws,'الإجابات');dl(wb,'قالب_إجابات_نافس.xlsx')};
+
+/* بيانات تجريبية */
+$('#sample').onclick=()=>{
+  const fn=['محمد','عبدالله','فهد','سعود','تركي','فيصل','ناصر','عمر','يوسف','سلطان','بندر','راكان','مشاري','عبدالرحمن','ريان','زياد','حمد','سلمان','نواف','مهند','إبراهيم','أنس','مالك','هشام','وليد'];
+  const ln=['أحمد','سالم','حمود','علي','سعد','خالد','صالح','مطلق','عيد','فرحان'];
+  S.mode='letters';const Q=S.questions;Q.forEach((q,i)=>{q.key=LETTERS[(i*7+3)%4];q._diff=0.35+((i*37)%50)/100});
+  const nd=S.domains.length;
+  S.students=fn.map((f,k)=>{const ab=0.25+((k*53)%70)/100;const s=newStudent(f+' '+ln[k%ln.length]);
+    Q.forEach((q,i)=>{const di=S.domains.indexOf(q.d);const pen=di===nd-1?0.25:di===1?0.12:0;const p=Math.min(.97,Math.max(.05,ab+q._diff-0.45-pen));
+      const r=((k*31+i*17)%100)/100;s.ans[i]=r<p?q.key:LETTERS[(LETTERS.indexOf(q.key)+1+((k+i)%3))%4]});return s});
+  Q.forEach(q=>delete q._diff);save();renderSetup();renderGrid();toast('تم تحميل بيانات تجريبية — امسحها قبل إدخال بياناتك')};
+
+/* ---------- التحليل ---------- */
+function levelOf(p,L){return p>=L.adv?0:p>=L.prof?1:p>=L.min?2:3}
+function analyze(st){
+  const Q=st.questions,W=Q.map(q=>+q.w||1),tot=W.reduce((a,b)=>a+b,0);
+  const doms=[...st.domains.filter(d=>Q.some(q=>q.d===d)),...[...new Set(Q.map(q=>q.d))].filter(d=>!st.domains.includes(d))];
+  const studs=st.students.filter(s=>s.name.trim()&&s.ans.some(v=>v));
+  const rows=studs.map(s=>{const c=Q.map((q,i)=>corr(s.ans[i]||'',q));const sc=c.reduce((a,x,i)=>a+x*W[i],0);const p=tot?sc/tot*100:0;
+    const dom={};doms.forEach(d=>{let g=0,m=0;Q.forEach((q,i)=>{if(q.d===d){g+=c[i]*W[i];m+=W[i]}});dom[d]=m?g/m*100:0});
+    const weak=doms.slice().sort((a,b)=>dom[a]-dom[b])[0];
+    return{name:s.name,ans:s.ans,c,sc,p,lv:levelOf(p,st.levels),dom,weak}});
+  const N=rows.length;
+  const sorted=rows.slice().sort((a,b)=>b.sc-a.sc);const k=N>=4?Math.max(1,Math.round(N*.27)):0;
+  const up=sorted.slice(0,k),lo=sorted.slice(N-k);
+  const items=Q.map((q,i)=>{const p=N?rows.reduce((a,r)=>a+r.c[i],0)/N*100:0;
+    const D=k?(up.reduce((a,r)=>a+r.c[i],0)-lo.reduce((a,r)=>a+r.c[i],0))/k:null;
+    const dist={};LETTERS.forEach(l=>dist[l]=0);let blank=0;rows.forEach(r=>{const v=r.ans[i]||'';if(isLetter(v))dist[v]++;else if(!v)blank++});
+    return{i,q,p,D,dist,blank}});
+  const domAvg={};doms.forEach(d=>domAvg[d]=N?rows.reduce((a,r)=>a+r.dom[d],0)/N:0);
+  const lvCount=[0,0,0,0];rows.forEach(r=>lvCount[r.lv]++);
+  const mean=N?rows.reduce((a,r)=>a+r.p,0)/N:0;
+  const sd=N?Math.sqrt(rows.reduce((a,r)=>a+(r.p-mean)**2,0)/N):0;
+  const ps=rows.map(r=>r.p).sort((a,b)=>a-b);const med=N?(N%2?ps[(N-1)/2]:(ps[N/2-1]+ps[N/2])/2):0;
+  return{Q,tot,doms,rows,N,items,domAvg,lvCount,mean,sd,med,max:N?ps[N-1]:0,min:N?ps[0]:0,prof:N?(lvCount[0]+lvCount[1])/N*100:0}
+}
+const diffLbl=p=>p>=80?['سهل','lv0']:p>=40?['متوسط','lv1']:['صعب','lv3'];
+const discLbl=D=>D==null?['—','']:D>=.4?['ممتاز','lv0']:D>=.3?['جيد','lv1']:D>=.2?['مقبول','lv2']:['ضعيف','lv3'];
+const domSt=p=>p>=80?['نقطة قوة','lv0',LVC[0]]:p>=60?['يحتاج تعزيزًا','lv2',LVC[2]]:['يحتاج علاجًا','lv3',LVC[3]];
+const barH=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,p))}%;background:${c}"></i></div>`;
+
+function recs(A){
+  const r=[];const ds=A.doms.slice().sort((a,b)=>A.domAvg[a]-A.domAvg[b]);
+  r.push(`متوسط أداء الطلاب ${P(A.mean)}، ونسبة الطلاب في مستوى «متمكن» فأعلى ${P(A.prof)} (${ar(A.lvCount[0]+A.lvCount[1])} من ${ar(A.N)}).`);
+  const weak=ds.filter(d=>A.domAvg[d]<60);
+  if(weak.length)r.push(`أولوية العلاج: ${weak.map(d=>`«${d}» (${P(A.domAvg[d])})`).join('، ')} — تخصيص حصص علاجية وأوراق عمل مركّزة على مهارات هذا المجال.`);
+  else if(ds.length)r.push(`أضعف المجالات نسبيًا «${ds[0]}» (${P(A.domAvg[ds[0]])}) — يُوصى بتعزيزه بتدريبات إضافية بنمط أسئلة نافس.`);
+  const strong=ds.filter(d=>A.domAvg[d]>=80);if(strong.length)r.push(`نقاط القوة: ${strong.map(d=>`«${d}»`).join('، ')} — يُحافظ عليها بالمراجعة الدورية والأنشطة الإثرائية.`);
+  const hard=A.items.filter(x=>x.p<50).sort((a,b)=>a.p-b.p).slice(0,6);
+  if(hard.length)r.push(`مهارات تحتاج إعادة تدريس (أقل من ٥٠٪ إجابة صحيحة): ${hard.map(x=>`س${ar(x.i+1)}${x.q.skill?' ('+x.q.skill+')':''}`).join('، ')}.`);
+  const bad=A.items.filter(x=>x.D!=null&&x.D<.2);
+  if(bad.length)r.push(`أسئلة تمييزها ضعيف يُنصح بمراجعة صياغتها أو بدائلها: ${bad.map(x=>'س'+ar(x.i+1)).join('، ')}.`);
+  if(A.lvCount[2]+A.lvCount[3])r.push(`إعداد خطة علاجية فردية لـ ${ar(A.lvCount[2]+A.lvCount[3])} طالب (الحد الأدنى ودونه)، ومتابعتهم باختبار قصير بعد أسبوعين.`);
+  if(A.lvCount[0])r.push(`تقديم أنشطة إثرائية ومسابقات لـ ${ar(A.lvCount[0])} طالب في المستوى المتقدم، وتوظيفهم في التعلم بالأقران.`);
+  return r;
+}
+
+function renderReport(){
+  const A=analyze(S),m=S.meta,L=S.mode==='letters';
+  if(!A.N){$('#report').innerHTML='<div class="card empty">أدخل إجابات الطلاب أولًا من تبويب «إدخال الإجابات».</div>';return}
+  const title=`تقرير تحليل نتائج ${esc(m.test)} — ${SUBJ[m.subject]} — الصف ${m.grade==='3'?'الثالث':'السادس'} الابتدائي`;
+  let h=`<div class="rhead"><div style="font-size:12px">المملكة العربية السعودية — وزارة التعليم</div><div style="font-size:12px">${esc(m.school)}</div><h2>${title}</h2>
+   <div style="font-size:12px">${m.cls?'الفصل: '+esc(ar(m.cls))+' • ':''}${m.teacher?'المعلم: '+esc(m.teacher)+' • ':''}${m.date?'التاريخ: '+esc(ar(m.date)):''}</div></div>`;
+  h+=`<div class="card no-print"><h2 style="margin:0">${title}</h2><div class="note">${esc(m.school)}${m.cls?' • '+esc(ar(m.cls)):''}</div></div>`;
+  h+=`<div class="card"><h2>المؤشرات العامة</h2><div class="kpis">
+   <div class="kpi"><b>${ar(A.N)}</b><span>عدد الطلاب المختبرين</span></div>
+   <div class="kpi"><b>${P(A.mean)}</b><span>متوسط الأداء</span></div>
+   <div class="kpi"><b>${P(A.prof)}</b><span>متمكن فأعلى</span></div>
+   <div class="kpi"><b>${P(A.med)}</b><span>الوسيط</span></div>
+   <div class="kpi"><b>${P(A.max)}</b><span>أعلى نسبة</span></div>
+   <div class="kpi"><b>${P(A.min)}</b><span>أدنى نسبة</span></div>
+   <div class="kpi"><b>${ar(A.sd.toFixed(1))}</b><span>الانحراف المعياري</span></div>
+   <div class="kpi"><b>${ar(A.Q.length)}</b><span>عدد الأسئلة (${ar(A.tot)} درجة)</span></div></div></div>`;
+  // مستويات
+  h+=`<div class="card"><h2>توزيع الطلاب على مستويات الأداء</h2><div class="stack">${A.lvCount.map((c,i)=>c?`<div style="width:${c/A.N*100}%;background:${LVC[i]}">${ar(c)}</div>`:'').join('')}</div>
+   <div class="scroll" style="margin-top:10px"><table><tr><th class="l">المستوى</th><th>المدى</th><th>العدد</th><th>النسبة</th></tr>
+   ${LV.map((n,i)=>{const L2=S.levels;const rng=i===0?`${ar(L2.adv)}٪ فأكثر`:i===1?`${ar(L2.prof)}–${ar(L2.adv)}٪`:i===2?`${ar(L2.min)}–${ar(L2.prof)}٪`:`أقل من ${ar(L2.min)}٪`;
+     return `<tr><td class="l"><span class="pill lv${i}">${n}</span></td><td>${rng}</td><td>${ar(A.lvCount[i])}</td><td>${P(A.lvCount[i]/A.N*100)}</td></tr>`}).join('')}</table></div></div>`;
+  // مجالات
+  h+=`<div class="card"><h2>الأداء حسب المجالات</h2><div class="scroll"><table><tr><th class="l">المجال</th><th>عدد الأسئلة</th><th style="min-width:140px">نسبة الإتقان</th><th>%</th><th>الحالة</th></tr>
+   ${A.doms.map(d=>{const p=A.domAvg[d],s=domSt(p);return `<tr><td class="l">${esc(d)}</td><td>${ar(A.Q.filter(q=>q.d===d).length)}</td><td>${barH(p,s[2])}</td><td><b>${P(p)}</b></td><td><span class="pill ${s[1]}">${s[0]}</span></td></tr>`}).join('')}</table></div></div>`;
+  // أسئلة
+  h+=`<div class="card"><h2>تحليل الأسئلة (المفردات)</h2><p class="note">معامل السهولة = نسبة من أجاب إجابة صحيحة. معامل التمييز = الفرق بين أعلى ٢٧٪ وأدنى ٢٧٪ من الطلاب${A.N<4?' (يحتاج ٤ طلاب فأكثر)':''}.</p>
+   <div class="scroll"><table><tr><th>س</th><th class="l">المجال</th><th class="l">المهارة</th><th style="min-width:110px">الإجابة الصحيحة</th><th>٪</th><th>الصعوبة</th><th>التمييز</th>${L?LETTERS.map(l=>`<th>${l}</th>`).join('')+'<th>فارغ</th>':''}</tr>
+   ${A.items.map(x=>{const d=diffLbl(x.p),ds=discLbl(x.D);return `<tr><td><b>${ar(x.i+1)}</b></td><td class="l">${esc(x.q.d)}</td><td class="l">${esc(x.q.skill)||'—'}</td>
+    <td>${barH(x.p,x.p>=80?LVC[0]:x.p>=40?LVC[1]:LVC[3])}</td><td>${P(x.p)}</td><td><span class="pill ${d[1]}">${d[0]}</span></td>
+    <td>${x.D==null?'—':ar(x.D.toFixed(2))} <span class="pill ${ds[1]}">${ds[0]}</span></td>
+    ${L?LETTERS.map(l=>`<td style="${l===x.q.key?'font-weight:800;color:var(--l0);background:#f0fdf4':''}">${ar(x.dist[l])}</td>`).join('')+`<td>${ar(x.blank)}</td>`:''}</tr>`}).join('')}</table></div>
+   ${L&&A.Q.some(q=>!q.key)?'<p class="note" style="color:var(--l3)">تنبيه: بعض الأسئلة بدون مفتاح إجابة — أكملها في تبويب الإعداد.</p>':''}</div>`;
+  // طلاب
+  const rs=A.rows.slice().sort((a,b)=>b.p-a.p);
+  h+=`<div class="card"><h2>نتائج الطلاب</h2><div class="scroll"><table><tr><th>م</th><th class="l">اسم الطالب</th><th>الدرجة</th><th>النسبة</th><th>المستوى</th>${A.doms.map(d=>`<th style="font-size:12px;white-space:normal;min-width:80px">${esc(d)}</th>`).join('')}<th class="l">أضعف مجال</th></tr>
+   ${rs.map((r,i)=>`<tr><td>${ar(i+1)}</td><td class="l">${esc(r.name)}</td><td>${ar(+r.sc.toFixed(2))}/${ar(A.tot)}</td><td><b>${P(r.p)}</b></td><td><span class="pill lv${r.lv}">${LV[r.lv]}</span></td>
+    ${A.doms.map(d=>`<td style="color:${r.dom[d]<60?'var(--l3)':r.dom[d]>=80?'var(--l0)':'inherit'}">${P(r.dom[d])}</td>`).join('')}<td class="l">${esc(r.weak||'')}</td></tr>`).join('')}</table></div></div>`;
+  // مجموعات
+  const G=[[3,2],[1],[0]],GN=['مجموعة علاجية (الحد الأدنى ودونه)','مجموعة تعزيزية (متمكن)','مجموعة إثرائية (متقدم)'],GC=['lv3','lv1','lv0'];
+  h+=`<div class="card"><h2>مجموعات التعلم المقترحة</h2><div class="groups">${G.map((g,i)=>{const list=rs.filter(r=>g.includes(r.lv));
+   return `<div class="group"><h4><span class="pill ${GC[i]}">${ar(list.length)}</span> ${GN[i]}</h4>${list.length?`<ol>${list.map(r=>`<li>${esc(r.name)} — ${P(r.p)}${i===0?` <span class="note">(${esc(r.weak)})</span>`:''}</li>`).join('')}</ol>`:'<div class="note">لا يوجد</div>'}</div>`}).join('')}</div></div>`;
+  h+=`<div class="card"><h2>التوصيات</h2><ol class="recs">${recs(A).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`;
+  h+=`<div class="sign"><div>معلم المادة<br><br>${esc(m.teacher)||'..........................'}</div><div>وكيل الشؤون التعليمية<br><br>..........................</div><div>مدير المدرسة<br><br>..........................</div></div>`;
+  $('#report').innerHTML=h;
+}
+$('#print').onclick=()=>{renderReport();try{window.print()}catch(e){toast('الطباعة غير متاحة هنا — افتح الرابط المباشر')}};
+$('#copy').onclick=async()=>{const A=analyze(S);if(!A.N){toast('لا توجد بيانات');return}const m=S.meta;
+  const t=[`تحليل ${m.test} — ${SUBJ[m.subject]} — الصف ${m.grade==='3'?'الثالث':'السادس'} ${m.cls?'('+m.cls+')':''}`,`عدد الطلاب: ${ar(A.N)} | المتوسط: ${P(A.mean)} | متمكن فأعلى: ${P(A.prof)}`,
+   'المستويات: '+LV.map((n,i)=>`${n} ${ar(A.lvCount[i])}`).join(' • '),'المجالات:',...A.doms.map(d=>`- ${d}: ${P(A.domAvg[d])}`),'التوصيات:',...recs(A).map((x,i)=>`${ar(i+1)}. ${x}`)].join('\n');
+  try{await navigator.clipboard.writeText(t);toast('تم نسخ الملخص')}catch(e){toast('تعذّر النسخ')}};
+$('#xls').onclick=()=>{const A=analyze(S);if(!A.N){toast('لا توجد بيانات');return}if(typeof XLSX==='undefined'){toast('مكتبة Excel غير متاحة');return}
+  const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};const R=x=>Math.round(x);
+  const s1=[['م','اسم الطالب','الدرجة','من','النسبة %','المستوى',...A.doms,'أضعف مجال'],...A.rows.slice().sort((a,b)=>b.p-a.p).map((r,i)=>[i+1,r.name,+r.sc.toFixed(2),A.tot,R(r.p),LV[r.lv],...A.doms.map(d=>R(r.dom[d])),r.weak])];
+  const s2=[['السؤال','المجال','المهارة','الإجابة الصحيحة','نسبة الإجابة الصحيحة %','الصعوبة','معامل التمييز','التمييز',...(S.mode==='letters'?LETTERS:[])],...A.items.map(x=>[x.i+1,x.q.d,x.q.skill,x.q.key||'',R(x.p),diffLbl(x.p)[0],x.D==null?'':+x.D.toFixed(2),discLbl(x.D)[0],...(S.mode==='letters'?LETTERS.map(l=>x.dist[l]):[])])];
+  const s3=[['المجال','نسبة الإتقان %','الحالة'],...A.doms.map(d=>[d,R(A.domAvg[d]),domSt(A.domAvg[d])[0]]),[],['المستوى','العدد','النسبة %'],...LV.map((n,i)=>[n,A.lvCount[i],R(A.lvCount[i]/A.N*100)]),[],['المتوسط %',R(A.mean)],['متمكن فأعلى %',R(A.prof)]];
+  const s4=[['التوصيات'],...recs(A).map(x=>[x])];
+  [[s1,'نتائج الطلاب',[6,28]],[s2,'تحليل الأسئلة',[7,24,30]],[s3,'المجالات والمستويات',[30,14,16]],[s4,'التوصيات',[110]]].forEach(([d,n,w])=>{const ws=XLSX.utils.aoa_to_sheet(d);ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,n)});
+  dl(wb,`تحليل_نافس_${SUBJ[S.meta.subject]}_ص${S.meta.grade}${S.meta.cls?'_'+S.meta.cls.replace(/\//g,'-'):''}.xlsx`)};
+
+/* ---------- المحفوظة والمقارنة ---------- */
+const saved=()=>LS.get('nafs_saved')||[];
+const label=t=>`${t.state.meta.test} — ${SUBJ[t.state.meta.subject]} — ص${t.state.meta.grade==='3'?'٣':'٦'}${t.state.meta.cls?' ('+t.state.meta.cls+')':''}`;
+$('#saveT').onclick=()=>{const A=analyze(S);if(!A.N){toast('لا توجد بيانات للحفظ');return}const L=saved();L.unshift({id:Date.now(),at:hijri(),state:JSON.parse(JSON.stringify(S))});LS.set('nafs_saved',L);toast('تم الحفظ في «المحفوظة»')};
+function renderSaved(){const L=saved();
+  $('#savedList').innerHTML=L.length?`<div class="scroll"><table><tr><th class="l">الاختبار</th><th>التاريخ</th><th>الطلاب</th><th>المتوسط</th><th></th></tr>${L.map(t=>{const A=analyze(t.state);
+   return `<tr><td class="l">${esc(label(t))}</td><td>${esc(t.at)}</td><td>${ar(A.N)}</td><td>${P(A.mean)}</td><td><button class="btn sec" style="padding:2px 10px" data-open="${t.id}">فتح</button> <button class="btn red" style="padding:2px 10px" data-rm="${t.id}">حذف</button></td></tr>`}).join('')}</table></div>`
+   :'<div class="empty">لا توجد اختبارات محفوظة — بعد التحليل اضغط «حفظ هذا الاختبار».</div>';
+  const o=L.map(t=>`<option value="${t.id}">${esc(label(t))} — ${esc(t.at)}</option>`).join('');$('#cA').innerHTML=o;$('#cB').innerHTML=o;if(L.length>1)$('#cA').selectedIndex=1;}
+$('#savedList').addEventListener('click',e=>{const o=e.target.closest('[data-open]'),r=e.target.closest('[data-rm]');
+  if(o){const t=saved().find(x=>x.id==o.dataset.open);if(t){S=JSON.parse(JSON.stringify(t.state));save();renderSetup();go('analysis');toast('تم فتح الاختبار')}}
+  if(r){if(!r.dataset.sure){r.dataset.sure=1;r.textContent='تأكيد؟';return}LS.set('nafs_saved',saved().filter(x=>x.id!=r.dataset.rm));renderSaved()}});
+$('#doCmp').onclick=()=>{const L=saved();const a=L.find(x=>x.id==$('#cA').value),b=L.find(x=>x.id==$('#cB').value);if(!a||!b||a===b){toast('اختر اختبارين مختلفين');return}
+  const A=analyze(a.state),B=analyze(b.state);const ch=(x,y)=>{const d=y-x;return `<b style="color:${d>0?'var(--l0)':d<0?'var(--l3)':'inherit'}">${d>0?'▲ +':d<0?'▼ ':''}${ar(Math.round(d))}</b>`};
+  const doms=A.doms.filter(d=>B.doms.includes(d));
+  $('#cmp').innerHTML=`<div class="scroll"><table><tr><th class="l">المؤشر</th><th>${esc(a.state.meta.test)}</th><th>${esc(b.state.meta.test)}</th><th>التغير</th></tr>
+   <tr><td class="l">عدد الطلاب</td><td>${ar(A.N)}</td><td>${ar(B.N)}</td><td></td></tr>
+   <tr><td class="l">متوسط الأداء</td><td>${P(A.mean)}</td><td>${P(B.mean)}</td><td>${ch(A.mean,B.mean)}</td></tr>
+   <tr><td class="l">متمكن فأعلى</td><td>${P(A.prof)}</td><td>${P(B.prof)}</td><td>${ch(A.prof,B.prof)}</td></tr>
+   ${LV.map((n,i)=>`<tr><td class="l"><span class="pill lv${i}">${n}</span></td><td>${P(A.N?A.lvCount[i]/A.N*100:0)}</td><td>${P(B.N?B.lvCount[i]/B.N*100:0)}</td><td>${ch(A.N?A.lvCount[i]/A.N*100:0,B.N?B.lvCount[i]/B.N*100:0)}</td></tr>`).join('')}
+   ${doms.map(d=>`<tr><td class="l">${esc(d)}</td><td>${P(A.domAvg[d])}</td><td>${P(B.domAvg[d])}</td><td>${ch(A.domAvg[d],B.domAvg[d])}</td></tr>`).join('')}</table></div>
+   <p class="note">التغير بالنقاط المئوية. ${a.state.meta.subject!==b.state.meta.subject?'<span style="color:var(--l3)">تنبيه: الاختباران لمادتين مختلفتين.</span>':''}</p>`};
+$('#bkCopy').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify({cur:S,saved:saved()}));toast('تم النسخ')}catch(e){$('#bk').value=JSON.stringify({cur:S,saved:saved()});toast('انسخ النص من المربع')}};
+$('#bkRestore').onclick=()=>{try{const d=JSON.parse($('#bk').value);if(d.cur){S=d.cur;save()}if(d.saved)LS.set('nafs_saved',d.saved);renderSetup();renderSaved();toast('تمت الاستعادة');$('#bk').value=''}catch(e){toast('النص غير صالح')}};
+
+renderSetup();
+</script>
+</body>
+</html>
